@@ -1,7 +1,76 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-void main() {
-  runApp(const MyApp());
+import 'core/di/service_locator.dart';
+import 'presentation/app.dart';
+
+/// Main entry point of the application
+/// Initializes dependencies and starts the Flutter app
+void main() async {
+  // Ensure Flutter binding is initialized before any async operations
+  WidgetsFlutterBinding.ensureInitialized();
+
+  try {
+    // Initialize dependency injection container
+    await initializeDependencies();
+
+    // Configure system UI overlay style for status bar
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.white,
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+    );
+
+    // Set preferred device orientations (portrait only for better UX)
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+
+    // Start the Flutter application
+    runApp(const SleepTrackerApp());
+  } catch (error) {
+    // Run a minimal error app if initialization fails
+    runApp(
+      MaterialApp(
+        title: 'Sleep Tracker - Error',
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          backgroundColor: Colors.white,
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Sleep Tracker',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Failed to initialize the app: $error',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 16, color: Colors.black54),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class MyApp extends StatelessWidget {
