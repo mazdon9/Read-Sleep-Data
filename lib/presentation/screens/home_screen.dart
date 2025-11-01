@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:health/health.dart';
 
 import '../../core/constants/app_strings.dart';
 import '../../core/constants/app_theme.dart';
-import '../../core/di/service_locator.dart';
 import '../../core/utils/date_formatter.dart';
-import '../../data/models/sleep_session_model.dart';
+import '../../services/health_service.dart';
 import '../cubit/health_cubit.dart';
 import '../widgets/error_message_widget.dart';
 import '../widgets/loading_widget.dart';
@@ -19,7 +19,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => getDependency<HealthCubit>()..checkStatus(),
+      create: (context) => HealthCubit(HealthService())..checkStatus(),
       child: const _HomeScreenView(),
     );
   }
@@ -254,7 +254,7 @@ class _HomeScreenView extends StatelessWidget {
 
   Widget _buildSleepDataList(
     BuildContext context,
-    List<SleepSessionModel> sessions,
+    List<HealthDataPoint> sessions,
   ) {
     return CustomScrollView(
       slivers: [
@@ -306,7 +306,7 @@ class _HomeScreenView extends StatelessWidget {
 
 /// Individual sleep session card widget
 class _SleepSessionCard extends StatelessWidget {
-  final SleepSessionModel session;
+  final HealthDataPoint session;
 
   const _SleepSessionCard({required this.session});
 
@@ -332,7 +332,7 @@ class _SleepSessionCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    DateTimeFormatter.getRelativeDateString(session.startTime),
+                    DateTimeFormatter.getRelativeDateString(session.dateFrom),
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -351,7 +351,7 @@ class _SleepSessionCard extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      DateTimeFormatter.formatDuration(session.duration),
+                      DateTimeFormatter.formatDuration(session.dateTo.difference(session.dateFrom)),
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -375,8 +375,8 @@ class _SleepSessionCard extends StatelessWidget {
                   const SizedBox(width: AppDimensions.paddingXS),
                   Text(
                     DateTimeFormatter.formatSleepTimeRange(
-                      session.startTime,
-                      session.endTime,
+                      session.dateFrom,
+                      session.dateTo,
                     ),
                     style: const TextStyle(
                       fontSize: 14,
@@ -387,7 +387,7 @@ class _SleepSessionCard extends StatelessWidget {
               ),
 
               // Source information if available
-              if (session.source != null) ...[
+              if (session.sourceName.isNotEmpty) ...[
                 const SizedBox(height: AppDimensions.paddingXS),
                 Row(
                   children: [
@@ -398,7 +398,7 @@ class _SleepSessionCard extends StatelessWidget {
                     ),
                     const SizedBox(width: AppDimensions.paddingXS),
                     Text(
-                      session.source!,
+                      session.sourceName,
                       style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.textHint,

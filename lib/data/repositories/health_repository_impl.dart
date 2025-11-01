@@ -88,14 +88,12 @@ class HealthRepositoryImpl implements HealthRepository {
   }
 
   @override
-  Future<HealthConnectSdkStatus> checkAuthorizationStatus(
-    List<HealthDataType> types,
-  ) async {
+  Future<bool> checkAuthorizationStatus(List<HealthDataType> types) async {
     try {
       return await _dataSource.checkAuthorizationStatus(types);
     } catch (error) {
-      // Return the first enum value on error (safer than hardcoding)
-      return HealthConnectSdkStatus.values.first;
+      // Return false on error
+      return false;
     }
   }
 

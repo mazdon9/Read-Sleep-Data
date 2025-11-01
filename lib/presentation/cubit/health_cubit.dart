@@ -1,61 +1,36 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:health/health.dart';
 
-import '../../core/constants/app_constants.dart';
-import '../../core/utils/logger.dart';
-import '../../data/models/sleep_session_model.dart';
-import '../../domain/usecases/check_health_connect_status.dart';
-import '../../domain/usecases/get_sleep_data.dart';
-import '../../domain/usecases/request_permission.dart';
+import '../../services/health_service.dart';
 
 /// Cubit for managing health data state and operations
 /// Handles permission requests, data fetching, and error states
 class HealthCubit extends Cubit<HealthState> {
-  final RequestPermission _requestPermission;
-  final GetSleepData _getSleepData;
-  final CheckHealthConnectStatus _checkHealthConnectStatus;
+  final HealthService _healthService;
 
-  /// Constructor that takes required use case dependencies
-  HealthCubit({
-    required RequestPermission requestPermission,
-    required GetSleepData getSleepData,
-    required CheckHealthConnectStatus checkHealthConnectStatus,
-  }) : _requestPermission = requestPermission,
-       _getSleepData = getSleepData,
-       _checkHealthConnectStatus = checkHealthConnectStatus,
-       super(HealthState.initial);
+  /// Constructor that takes required health service
+  HealthCubit(this._healthService) : super(HealthState.initial);
 
   /// Check current Health Connect status
   Future<void> checkStatus() async {
     try {
       emit(HealthState.loading);
+      
+      final isInstalled = await _healthService.isHealthConnectInstalled();
+      if (!isInstalled) {
+        emit(HealthState.healthConnectNotInstalled);
+        return;
+      }
 
-      final status = await _checkHealthConnectStatus();
-
-      switch (status) {
-        case HealthConnectStatus.notInstalled:
-          emit(HealthState.healthConnectNotInstalled);
-          break;
-        case HealthConnectStatus.notSupported:
-          emit(HealthState.healthConnectNotSupported);
-          break;
-        case HealthConnectStatus.availableNoPermission:
-          emit(HealthState.permissionRequired);
-          break;
-        case HealthConnectStatus.availableWithPermission:
-          await _loadSleepData();
-          break;
-        case HealthConnectStatus.error:
-          emit(HealthState.error('Failed to check Health Connect status'));
-          break;
+      final hasPermission = await _healthService.hasPermissions();
+      if (hasPermission) {
+        await _loadSleepData();
+      } else {
+        emit(HealthState.permissionRequired);
       }
     } catch (error) {
-      AppLogger.error(
-        'Error checking Health Connect status',
-        'HealthCubit',
-        error,
-      );
-      emit(HealthState.error('An unexpected error occurred'));
+      emit(HealthState.error('Failed to check Health Connect status'));
     }
   }
 
@@ -63,30 +38,15 @@ class HealthCubit extends Cubit<HealthState> {
   Future<void> requestPermission() async {
     try {
       emit(HealthState.requestingPermission);
-
-      final result = await _requestPermission();
-
-      switch (result) {
-        case PermissionResult.granted:
-        case PermissionResult.alreadyGranted:
-          AppLogger.permission('Permission granted', 'Health Data');
-          await _loadSleepData();
-          break;
-        case PermissionResult.denied:
-          AppLogger.permission('Permission denied', 'Health Data');
-          emit(HealthState.permissionDenied);
-          break;
-        case PermissionResult.healthConnectNotAvailable:
-          emit(HealthState.healthConnectNotInstalled);
-          break;
-        case PermissionResult.error:
-        case PermissionResult.timeout:
-          emit(HealthState.error('Failed to request permission'));
-          break;
+      
+      final success = await _healthService.requestPermissions();
+      if (success) {
+        await _loadSleepData();
+      } else {
+        emit(HealthState.permissionDenied);
       }
     } catch (error) {
-      AppLogger.error('Error requesting permission', 'HealthCubit', error);
-      emit(HealthState.error('An error occurred while requesting permission'));
+      emit(HealthState.error('Failed to request permission'));
     }
   }
 
@@ -103,18 +63,13 @@ class HealthCubit extends Cubit<HealthState> {
   /// Open Health Connect app from Play Store
   Future<void> openHealthConnectInstall() async {
     try {
-      final uri = Uri.parse(HealthConnectConstants.healthConnectPlayStoreUrl);
+      final uri = Uri.parse('https://play.google.com/store/apps/details?id=com.google.android.apps.healthdata');
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
         emit(HealthState.error('Cannot open Play Store'));
       }
     } catch (error) {
-      AppLogger.error(
-        'Error opening Health Connect install',
-        'HealthCubit',
-        error,
-      );
       emit(HealthState.error('Failed to open Play Store'));
     }
   }
@@ -124,41 +79,14 @@ class HealthCubit extends Cubit<HealthState> {
     try {
       emit(HealthState.loadingData);
 
-      final result = await _getSleepData();
-
-      switch (result.status) {
-        case SleepDataStatus.success:
-          if (result.hasData) {
-            final sleepModels = result.data!
-                .map(
-                  (session) => SleepSessionModel(
-                    id: session.id,
-                    startTime: session.startTime,
-                    endTime: session.endTime,
-                    source: session.source,
-                  ),
-                )
-                .toList();
-
-            AppLogger.health('Loaded ${sleepModels.length} sleep sessions');
-            emit(HealthState.dataLoaded(sleepModels));
-          } else {
-            emit(HealthState.noData);
-          }
-          break;
-        case SleepDataStatus.noData:
-          emit(HealthState.noData);
-          break;
-        case SleepDataStatus.permissionDenied:
-          emit(HealthState.permissionRequired);
-          break;
-        case SleepDataStatus.error:
-          emit(HealthState.error('Failed to load sleep data'));
-          break;
+      final sleepData = await _healthService.getSleepData();
+      if (sleepData.isNotEmpty) {
+        emit(HealthState.dataLoaded(sleepData));
+      } else {
+        emit(HealthState.noData);
       }
     } catch (error) {
-      AppLogger.error('Error loading sleep data', 'HealthCubit', error);
-      emit(HealthState.error('An error occurred while loading sleep data'));
+      emit(HealthState.error('Failed to load sleep data'));
     }
   }
 }
@@ -184,10 +112,6 @@ sealed class HealthState {
   static const HealthState healthConnectNotInstalled =
       _HealthConnectNotInstalledState();
 
-  /// Health Connect is not supported on this device
-  static const HealthState healthConnectNotSupported =
-      _HealthConnectNotSupportedState();
-
   /// Permission is required to access health data
   static const HealthState permissionRequired = _PermissionRequiredState();
 
@@ -198,7 +122,7 @@ sealed class HealthState {
   static const HealthState noData = _NoDataState();
 
   /// Sleep data loaded successfully
-  factory HealthState.dataLoaded(List<SleepSessionModel> sessions) =
+  factory HealthState.dataLoaded(List<HealthDataPoint> sessions) =
       _DataLoadedState;
 
   /// An error occurred
@@ -226,10 +150,6 @@ class _HealthConnectNotInstalledState extends HealthState {
   const _HealthConnectNotInstalledState();
 }
 
-class _HealthConnectNotSupportedState extends HealthState {
-  const _HealthConnectNotSupportedState();
-}
-
 class _PermissionRequiredState extends HealthState {
   const _PermissionRequiredState();
 }
@@ -243,7 +163,7 @@ class _NoDataState extends HealthState {
 }
 
 class _DataLoadedState extends HealthState {
-  final List<SleepSessionModel> sessions;
+  final List<HealthDataPoint> sessions;
 
   const _DataLoadedState(this.sessions);
 }
@@ -283,6 +203,6 @@ extension HealthStateExtensions on HealthState {
       this is _ErrorState ? (this as _ErrorState).message : null;
 
   /// Get sleep sessions if in data loaded state
-  List<SleepSessionModel>? get sleepSessions =>
+  List<HealthDataPoint>? get sleepSessions =>
       this is _DataLoadedState ? (this as _DataLoadedState).sessions : null;
 }

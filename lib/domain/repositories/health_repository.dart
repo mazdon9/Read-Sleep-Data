@@ -52,9 +52,7 @@ abstract class HealthRepository {
 
   /// Check the current authorization status for specific health data types
   /// [types] - List of health data types to check status for
-  /// Returns the authorization status for the requested types
+  /// Returns true if authorized, false otherwise
   /// Throws [Failure] if there's an error checking authorization status
-  Future<HealthConnectSdkStatus> checkAuthorizationStatus(
-    List<HealthDataType> types,
-  );
+  Future<bool> checkAuthorizationStatus(List<HealthDataType> types);
 }

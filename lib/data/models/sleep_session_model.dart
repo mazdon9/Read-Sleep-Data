@@ -108,10 +108,12 @@ class SleepSessionModel {
   /// Check if this is a valid sleep session
   bool get isValid {
     if (endTime.isBefore(startTime)) return false;
-    if (duration.inMinutes < 30)
+    if (duration.inMinutes < 30) {
       return false; // Less than 30 minutes seems too short
-    if (duration.inHours > 24)
+    }
+    if (duration.inHours > 24) {
       return false; // More than 24 hours seems too long
+    }
     return true;
   }
 

@@ -25,9 +25,7 @@ abstract class HealthDataSource {
   Future<List<HealthDataType>> getAvailableDataTypes();
 
   /// Check authorization status for specific data types
-  Future<HealthConnectSdkStatus> checkAuthorizationStatus(
-    List<HealthDataType> types,
-  );
+  Future<bool> checkAuthorizationStatus(List<HealthDataType> types);
 }
 
 /// Implementation of HealthDataSource using the health package
@@ -49,8 +47,8 @@ class HealthDataSourceImpl implements HealthDataSource {
   @override
   Future<bool> isHealthConnectAvailable() async {
     try {
-      // Try to get health connect status - if it doesn't throw, it's likely available
-      await _health.getHealthConnectSdkStatus();
+      // Configure health plugin first
+      await _health.configure();
       return true;
     } catch (error) {
       // If any error occurs, assume Health Connect is not available
@@ -136,16 +134,17 @@ class HealthDataSourceImpl implements HealthDataSource {
   }
 
   @override
-  Future<HealthConnectSdkStatus> checkAuthorizationStatus(
-    List<HealthDataType> types,
-  ) async {
+  Future<bool> checkAuthorizationStatus(List<HealthDataType> types) async {
     try {
-      final status = await _health.getHealthConnectSdkStatus();
-      // Return first enum value if null (we'll check actual values later)
-      return status ?? HealthConnectSdkStatus.values.first;
+      // Configure health first
+      await _health.configure();
+
+      // Check if we have permissions for the specified types
+      final hasPermissions = await _health.hasPermissions(types);
+      return hasPermissions ?? false;
     } catch (error) {
-      // Return first enum value on error
-      return HealthConnectSdkStatus.values.first;
+      // Return false on error
+      return false;
     }
   }
 
