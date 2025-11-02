@@ -95,7 +95,7 @@ class HealthCubit extends Cubit<HealthState> {
 
       if (sleepData.isNotEmpty) {
         print('Debug: Emitting dataLoaded state');
-        emit(HealthState.dataLoaded(sleepData));
+        emit(HealthState.dataLoaded(sleepData, lastUpdated: DateTime.now()));
       } else {
         print('Debug: No data found, emitting noData state');
         emit(HealthState.noData);
@@ -138,8 +138,10 @@ sealed class HealthState {
   static const HealthState noData = _NoDataState();
 
   /// Sleep data loaded successfully
-  factory HealthState.dataLoaded(List<HealthDataPoint> sessions) =
-      _DataLoadedState;
+  factory HealthState.dataLoaded(
+    List<HealthDataPoint> sessions, {
+    DateTime? lastUpdated,
+  }) = _DataLoadedState;
 
   /// An error occurred
   factory HealthState.error(String message) = _ErrorState;
@@ -180,8 +182,9 @@ class _NoDataState extends HealthState {
 
 class _DataLoadedState extends HealthState {
   final List<HealthDataPoint> sessions;
+  final DateTime? lastUpdated;
 
-  const _DataLoadedState(this.sessions);
+  const _DataLoadedState(this.sessions, {this.lastUpdated});
 }
 
 class _ErrorState extends HealthState {
@@ -221,4 +224,8 @@ extension HealthStateExtensions on HealthState {
   /// Get sleep sessions if in data loaded state
   List<HealthDataPoint>? get sleepSessions =>
       this is _DataLoadedState ? (this as _DataLoadedState).sessions : null;
+
+  /// Get last updated time if in data loaded state
+  DateTime? get lastUpdated =>
+      this is _DataLoadedState ? (this as _DataLoadedState).lastUpdated : null;
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health/health.dart';
@@ -22,6 +24,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   late final HealthCubit _cubit;
+  Timer? _autoRefreshTimer;
 
   @override
   void initState() {
@@ -30,13 +33,28 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _cubit = HealthCubit(HealthService());
     // initial check
     _cubit.checkStatus();
+    // Start auto-refresh timer - check for new data every 5 minutes
+    _startAutoRefreshTimer();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _autoRefreshTimer?.cancel();
     _cubit.close();
     super.dispose();
+  }
+
+  /// Start timer to automatically refresh data every 5 minutes
+  void _startAutoRefreshTimer() {
+    _autoRefreshTimer = Timer.periodic(const Duration(minutes: 5), (timer) {
+      // Only refresh if we have data loaded (not in permission or error states)
+      final currentState = _cubit.state;
+      if (currentState.hasData && !currentState.isLoading) {
+        print('Debug: Auto-refreshing sleep data...');
+        _cubit.refreshSleepData();
+      }
+    });
   }
 
   @override
@@ -64,14 +82,11 @@ class _HomeScreenView extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           AppStrings.appTitle,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
         ),
         centerTitle: true,
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.textPrimary,
+        backgroundColor: AppColors.info,
+        foregroundColor: AppColors.surface,
         elevation: 0,
       ),
       body: BlocBuilder<HealthCubit, HealthState>(
@@ -276,42 +291,69 @@ class _HomeScreenView extends StatelessWidget {
   }
 
   Widget _buildNoData(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppDimensions.paddingL),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.bedtime_off,
-              size: AppDimensions.iconXL * 2,
-              color: AppColors.textHint,
+    return RefreshIndicator(
+      onRefresh: () async {
+        await Future.delayed(const Duration(milliseconds: 300));
+        context.read<HealthCubit>().refreshSleepData();
+      },
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.7,
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(AppDimensions.paddingL),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.bedtime_off,
+                    size: AppDimensions.iconXL * 2,
+                    color: AppColors.textHint,
+                  ),
+
+                  const SizedBox(height: AppDimensions.paddingL),
+
+                  const Text(
+                    AppStrings.noDataAvailable,
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: AppColors.textPrimary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+
+                  const SizedBox(height: AppDimensions.paddingM),
+
+                  const Text(
+                    'No sleep data found for the last 7 days. Make sure you have sleep tracking enabled in Health Connect.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+
+                  const SizedBox(height: AppDimensions.paddingM),
+
+                  const Text(
+                    'Pull down to refresh or tap the button below',
+                    style: TextStyle(fontSize: 12, color: AppColors.textHint),
+                    textAlign: TextAlign.center,
+                  ),
+
+                  const SizedBox(height: AppDimensions.paddingXL),
+
+                  PrimaryButton(
+                    text: 'Refresh',
+                    onPressed: () =>
+                        context.read<HealthCubit>().refreshSleepData(),
+                    icon: Icons.refresh,
+                  ),
+                ],
+              ),
             ),
-
-            const SizedBox(height: AppDimensions.paddingL),
-
-            const Text(
-              AppStrings.noDataAvailable,
-              style: TextStyle(fontSize: 18, color: AppColors.textPrimary),
-              textAlign: TextAlign.center,
-            ),
-
-            const SizedBox(height: AppDimensions.paddingM),
-
-            const Text(
-              'No sleep data found for the last 7 days. Make sure you have sleep tracking enabled in Health Connect.',
-              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
-              textAlign: TextAlign.center,
-            ),
-
-            const SizedBox(height: AppDimensions.paddingXL),
-
-            PrimaryButton(
-              text: 'Refresh',
-              onPressed: () => context.read<HealthCubit>().refreshSleepData(),
-              icon: Icons.refresh,
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -321,50 +363,113 @@ class _HomeScreenView extends StatelessWidget {
     BuildContext context,
     List<HealthDataPoint> sessions,
   ) {
-    return CustomScrollView(
-      slivers: [
-        // Header section
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.all(AppDimensions.paddingL),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  AppStrings.sleepDataTitle,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.bold,
+    return RefreshIndicator(
+      onRefresh: () async {
+        // Show loading state briefly for user feedback
+        await Future.delayed(const Duration(milliseconds: 300));
+        context.read<HealthCubit>().refreshSleepData();
+      },
+      child: CustomScrollView(
+        physics:
+            const AlwaysScrollableScrollPhysics(), // Ensure pull-to-refresh works even with little content
+        slivers: [
+          // Header section
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(AppDimensions.paddingL),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppStrings.sleepDataTitle,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
                   ),
-                ),
 
-                const SizedBox(height: AppDimensions.paddingS),
+                  const SizedBox(height: AppDimensions.paddingS),
 
-                Text(
-                  '${sessions.length} sleep sessions found',
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 14,
+                  Text(
+                    '${sessions.length} sleep sessions found',
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 14,
+                    ),
                   ),
-                ),
-              ],
+
+                  const SizedBox(height: AppDimensions.paddingS),
+
+                  // Auto-refresh indicator and last updated time
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.auto_mode,
+                            size: 16,
+                            color: AppColors.textHint,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Auto-refresh every 5 minutes',
+                            style: TextStyle(
+                              color: AppColors.textHint,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      // Last updated time
+                      BlocBuilder<HealthCubit, HealthState>(
+                        builder: (context, state) {
+                          final lastUpdated = state.lastUpdated;
+                          if (lastUpdated != null) {
+                            return Row(
+                              children: [
+                                Icon(
+                                  Icons.update,
+                                  size: 16,
+                                  color: AppColors.textHint,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Last updated: ${DateTimeFormatter.formatTime(lastUpdated)}',
+                                  style: TextStyle(
+                                    color: AppColors.textHint,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
 
-        // Sleep sessions list
-        SliverList(
-          delegate: SliverChildBuilderDelegate((context, index) {
-            final session = sessions[index];
-            return _SleepSessionCard(session: session);
-          }, childCount: sessions.length),
-        ),
+          // Sleep sessions list
+          SliverList(
+            delegate: SliverChildBuilderDelegate((context, index) {
+              final session = sessions[index];
+              return _SleepSessionCard(session: session);
+            }, childCount: sessions.length),
+          ),
 
-        // Bottom padding
-        const SliverToBoxAdapter(
-          child: SizedBox(height: AppDimensions.paddingL),
-        ),
-      ],
+          // Bottom padding
+          const SliverToBoxAdapter(
+            child: SizedBox(height: AppDimensions.paddingL),
+          ),
+        ],
+      ),
     );
   }
 }
