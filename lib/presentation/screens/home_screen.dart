@@ -376,7 +376,12 @@ class _HomeScreenView extends StatelessWidget {
           // Header section
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(AppDimensions.paddingL),
+              padding: const EdgeInsets.fromLTRB(
+                AppDimensions.paddingM,
+                AppDimensions.paddingL,
+                AppDimensions.paddingL,
+                AppDimensions.paddingXS,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
