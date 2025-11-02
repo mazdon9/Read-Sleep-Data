@@ -13,15 +13,44 @@ import '../widgets/primary_button.dart';
 
 /// Main home screen that displays sleep data and handles permissions
 /// This is the primary screen users see after the splash screen
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+  late final HealthCubit _cubit;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _cubit = HealthCubit(HealthService());
+    // initial check
+    _cubit.checkStatus();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _cubit.close();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      // When returning from Health Connect app, re-check permissions/data
+      _cubit.checkStatus();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => HealthCubit(HealthService())..checkStatus(),
-      child: const _HomeScreenView(),
-    );
+    return BlocProvider.value(value: _cubit, child: const _HomeScreenView());
   }
 }
 
@@ -33,23 +62,21 @@ class _HomeScreenView extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text(AppStrings.appTitle),
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.surface,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => context.read<HealthCubit>().refreshSleepData(),
+        title: const Text(
+          AppStrings.appTitle,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
           ),
-        ],
+        ),
+        centerTitle: true,
+        backgroundColor: AppColors.surface,
+        foregroundColor: AppColors.textPrimary,
+        elevation: 0,
       ),
       body: BlocBuilder<HealthCubit, HealthState>(
         builder: (context, state) {
-          return RefreshIndicator(
-            onRefresh: () => context.read<HealthCubit>().refreshSleepData(),
-            child: _buildContent(context, state),
-          );
+          return _buildContent(context, state);
         },
       ),
     );
@@ -165,10 +192,29 @@ class _HomeScreenView extends StatelessWidget {
 
             const SizedBox(height: AppDimensions.paddingXL),
 
+            // Simple actions: Open Health Connect button
             PrimaryButton(
-              text: 'Grant Permission',
-              onPressed: () => context.read<HealthCubit>().requestPermission(),
-              icon: Icons.check,
+              text: 'Open Health Connect',
+              onPressed: () async {
+                final healthService = HealthService();
+                await healthService.openHealthConnectApp();
+              },
+              icon: Icons.open_in_new,
+            ),
+
+            const SizedBox(height: AppDimensions.paddingM),
+
+            // Refresh button to check permissions and load data
+            OutlinedButton.icon(
+              onPressed: () => context.read<HealthCubit>().checkStatus(),
+              icon: const Icon(Icons.refresh),
+              label: const Text('Refresh'),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.paddingL,
+                  vertical: AppDimensions.paddingM,
+                ),
+              ),
             ),
           ],
         ),
@@ -199,10 +245,29 @@ class _HomeScreenView extends StatelessWidget {
 
             const SizedBox(height: AppDimensions.paddingXL),
 
+            // Simple actions: Open Health Connect button
             PrimaryButton(
-              text: AppStrings.retryPermissionButton,
-              onPressed: () => context.read<HealthCubit>().requestPermission(),
-              icon: Icons.refresh,
+              text: 'Open Health Connect',
+              onPressed: () async {
+                final healthService = HealthService();
+                await healthService.openHealthConnectApp();
+              },
+              icon: Icons.open_in_new,
+            ),
+
+            const SizedBox(height: AppDimensions.paddingM),
+
+            // Refresh button to check permissions and load data
+            OutlinedButton.icon(
+              onPressed: () => context.read<HealthCubit>().checkStatus(),
+              icon: const Icon(Icons.refresh),
+              label: const Text('Refresh'),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.paddingL,
+                  vertical: AppDimensions.paddingM,
+                ),
+              ),
             ),
           ],
         ),
@@ -351,7 +416,9 @@ class _SleepSessionCard extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      DateTimeFormatter.formatDuration(session.dateTo.difference(session.dateFrom)),
+                      DateTimeFormatter.formatDuration(
+                        session.dateTo.difference(session.dateFrom),
+                      ),
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -398,7 +465,7 @@ class _SleepSessionCard extends StatelessWidget {
                     ),
                     const SizedBox(width: AppDimensions.paddingXS),
                     Text(
-                      session.sourceName,
+                      _formatSourceName(session.sourceName),
                       style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.textHint,
@@ -412,5 +479,25 @@ class _SleepSessionCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Format source name to be more user-friendly
+  String _formatSourceName(String sourceName) {
+    if (sourceName.contains('com.google.android.apps.fitness')) {
+      return 'Google Fit';
+    } else if (sourceName.contains('com.google.android.apps.healthdata')) {
+      return 'Health Connect';
+    } else if (sourceName.contains('samsung.health')) {
+      return 'Samsung Health';
+    } else if (sourceName.contains('fitbit')) {
+      return 'Fitbit';
+    } else if (sourceName.contains('garmin')) {
+      return 'Garmin';
+    } else if (sourceName.contains('huawei.health')) {
+      return 'Huawei Health';
+    } else {
+      // Return a capitalized version of the source name
+      return sourceName.split('.').last.replaceAll('_', ' ').toUpperCase();
+    }
   }
 }

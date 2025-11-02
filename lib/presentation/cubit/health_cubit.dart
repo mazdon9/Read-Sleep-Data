@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:health/health.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../services/health_service.dart';
 
@@ -15,21 +15,29 @@ class HealthCubit extends Cubit<HealthState> {
   /// Check current Health Connect status
   Future<void> checkStatus() async {
     try {
+      print('Debug: HealthCubit.checkStatus() called');
       emit(HealthState.loading);
-      
+
       final isInstalled = await _healthService.isHealthConnectInstalled();
+      print('Debug: Health Connect installed = $isInstalled');
       if (!isInstalled) {
         emit(HealthState.healthConnectNotInstalled);
         return;
       }
 
+      // Always check permissions explicitly
       final hasPermission = await _healthService.hasPermissions();
+      print('Debug: Has permissions = $hasPermission'); // Debug log
+
       if (hasPermission) {
+        print('Debug: Permissions granted, loading sleep data...');
         await _loadSleepData();
       } else {
+        print('Debug: Permissions not granted, showing permission required');
         emit(HealthState.permissionRequired);
       }
     } catch (error) {
+      print('Debug: Error in checkStatus = $error'); // Debug log
       emit(HealthState.error('Failed to check Health Connect status'));
     }
   }
@@ -38,7 +46,7 @@ class HealthCubit extends Cubit<HealthState> {
   Future<void> requestPermission() async {
     try {
       emit(HealthState.requestingPermission);
-      
+
       final success = await _healthService.requestPermissions();
       if (success) {
         await _loadSleepData();
@@ -63,7 +71,9 @@ class HealthCubit extends Cubit<HealthState> {
   /// Open Health Connect app from Play Store
   Future<void> openHealthConnectInstall() async {
     try {
-      final uri = Uri.parse('https://play.google.com/store/apps/details?id=com.google.android.apps.healthdata');
+      final uri = Uri.parse(
+        'https://play.google.com/store/apps/details?id=com.google.android.apps.healthdata',
+      );
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
@@ -77,15 +87,21 @@ class HealthCubit extends Cubit<HealthState> {
   /// Private method to load sleep data
   Future<void> _loadSleepData() async {
     try {
+      print('Debug: _loadSleepData() called');
       emit(HealthState.loadingData);
 
       final sleepData = await _healthService.getSleepData();
+      print('Debug: Received ${sleepData.length} sleep data points');
+
       if (sleepData.isNotEmpty) {
+        print('Debug: Emitting dataLoaded state');
         emit(HealthState.dataLoaded(sleepData));
       } else {
+        print('Debug: No data found, emitting noData state');
         emit(HealthState.noData);
       }
     } catch (error) {
+      print('Debug: Error in _loadSleepData = $error');
       emit(HealthState.error('Failed to load sleep data'));
     }
   }

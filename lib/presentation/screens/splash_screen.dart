@@ -18,7 +18,8 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     // Navigate to home screen after 2 seconds
-    Future.delayed(const Duration(seconds: 2), () {
+    // Slightly longer splash for branding (3 seconds)
+    Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const HomeScreen()),
@@ -32,33 +33,38 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(AppDimensions.paddingL),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // App logo/icon
-              const _AppLogo(),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppDimensions.paddingL,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // App logo/icon
+                const _AppLogo(),
 
-              const SizedBox(height: AppDimensions.paddingXL),
+                const SizedBox(height: AppDimensions.paddingL),
 
-              // App title
-              Text(
-                AppStrings.appTitle,
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.bold,
+                // App title
+                Text(
+                  AppStrings.appTitle,
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
-              ),
 
-              const SizedBox(height: AppDimensions.paddingXL),
+                const SizedBox(height: AppDimensions.paddingL),
 
-              // Loading indicator
-              const CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-              ),
-            ],
+                // Small loading indicator below the title
+                const SizedBox(height: AppDimensions.paddingM),
+                const CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -76,7 +82,6 @@ class _AppLogo extends StatelessWidget {
       width: 120,
       height: 120,
       decoration: BoxDecoration(
-        color: AppColors.primary,
         borderRadius: BorderRadius.circular(AppDimensions.radiusXL),
         boxShadow: [
           BoxShadow(
@@ -86,10 +91,14 @@ class _AppLogo extends StatelessWidget {
           ),
         ],
       ),
-      child: const Icon(
-        Icons.bedtime,
-        size: AppDimensions.iconXL * 1.5,
-        color: AppColors.surface,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppDimensions.radiusXL),
+        child: Image.asset(
+          'assets/images/logo_images.jpg',
+          width: 120,
+          height: 120,
+          fit: BoxFit.cover,
+        ),
       ),
     );
   }
