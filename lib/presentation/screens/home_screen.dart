@@ -207,23 +207,24 @@ class _HomeScreenView extends StatelessWidget {
 
             const SizedBox(height: AppDimensions.paddingXL),
 
-            // Simple actions: Open Health Connect button
+            // Request permission via system dialog
             PrimaryButton(
-              text: 'Open Health Connect',
-              onPressed: () async {
-                final healthService = HealthService();
-                await healthService.openHealthConnectApp();
-              },
-              icon: Icons.open_in_new,
+              // 60% của màn hình
+              text: 'Grant Permission',
+              onPressed: () => context.read<HealthCubit>().requestPermission(),
+              icon: Icons.security,
             ),
 
             const SizedBox(height: AppDimensions.paddingM),
 
-            // Refresh button to check permissions and load data
+            // Alternative: Open Health Connect button
             OutlinedButton.icon(
-              onPressed: () => context.read<HealthCubit>().checkStatus(),
-              icon: const Icon(Icons.refresh),
-              label: const Text('Refresh'),
+              onPressed: () async {
+                final healthService = HealthService();
+                await healthService.openHealthConnectApp();
+              },
+              icon: const Icon(Icons.open_in_new),
+              label: const Text('Open Health Connect'),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppDimensions.paddingL,
@@ -260,23 +261,23 @@ class _HomeScreenView extends StatelessWidget {
 
             const SizedBox(height: AppDimensions.paddingXL),
 
-            // Simple actions: Open Health Connect button
+            // Retry Permission button as required
             PrimaryButton(
-              text: 'Open Health Connect',
-              onPressed: () async {
-                final healthService = HealthService();
-                await healthService.openHealthConnectApp();
-              },
-              icon: Icons.open_in_new,
+              text: AppStrings.retryPermissionButton,
+              onPressed: () => context.read<HealthCubit>().requestPermission(),
+              icon: Icons.refresh,
             ),
 
             const SizedBox(height: AppDimensions.paddingM),
 
-            // Refresh button to check permissions and load data
+            // Alternative: Open Health Connect button
             OutlinedButton.icon(
-              onPressed: () => context.read<HealthCubit>().checkStatus(),
-              icon: const Icon(Icons.refresh),
-              label: const Text('Refresh'),
+              onPressed: () async {
+                final healthService = HealthService();
+                await healthService.openHealthConnectApp();
+              },
+              icon: const Icon(Icons.open_in_new),
+              label: const Text('Open Health Connect'),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppDimensions.paddingL,
