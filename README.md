@@ -5,6 +5,35 @@ A professional Flutter application that seamlessly integrates with **Health Conn
 ## 📱 Overview
 
 Sleep Data Tracker is a modern, intuitive mobile application designed to help users monitor and understand their sleep patterns. The app leverages Google's Health Connect platform to retrieve sleep data from various sources and presents it in a clean, user-friendly interface.
+## � Screenshots & Demo
+### 📸 **Screenshots**
+![z7186169103765_b0ffeb82966bd81aeda265b15bbf0b31](https://github.com/user-attachments/assets/90ada64b-d0f1-4b1c-b846-11b894fb2171)
+![z7186169112741_9f1493abb2edf39204c5aaacfdd4e2f6](https://github.com/user-attachments/assets/6f99cb5f-5410-4d77-b720-671a35181fe1)
+### 🎥 **Video Demo**
+Watch the app in action:
+![Uploading 1103(1).gif…]()
+
+**Demo Highlights:**
+- ✨ Professional splash screen with logo animation
+- 🔐 Health Connect integration and permission flow
+- 📊 Real-time sleep data visualization
+- 🔄 Auto-refresh and pull-to-refresh functionality
+- 🎨 Modern Material Design 3 interface
+- 📱 Responsive design across different screen sizes
+
+## �🚀 Installation & Setup
+
+### **📱 Quick Download (Recommended)**
+Download the latest APK directly:
+
+[![Download APK](https://img.shields.io/badge/Download-APK%20v1.0.0-blue?style=for-the-badge&logo=android)](https://github.com/mazdon9/Read-Sleep-Data/releases/download/v1.0.0/Sleep-Data-Tracker-v1.0.0.apk)
+
+**Requirements:**
+- Android 8.0 (API level 26) or higher
+- Health Connect app installed from Google Play Store
+- Allow installation from unknown sources (if needed)
+
+### **🛠 Build from Source**
 
 ## ✨ Key Features
 
@@ -68,44 +97,6 @@ health: ^13.2.1           # Health Connect integration
 url_launcher: ^6.3.1      # External app launches
 cupertino_icons: ^1.0.8   # iOS-style icons
 ```
-
-## � Screenshots & Demo
-
-### 🎥 **Video Demo**
-Watch the app in action:
-
-*Video demo will be available soon - showcasing the complete user flow from splash screen to sleep data visualization*
-
-**Demo Highlights:**
-- ✨ Professional splash screen with logo animation
-- 🔐 Health Connect integration and permission flow
-- 📊 Real-time sleep data visualization
-- 🔄 Auto-refresh and pull-to-refresh functionality
-- 🎨 Modern Material Design 3 interface
-- 📱 Responsive design across different screen sizes
-
-<!-- TODO: Add video demo link here -->
-<!-- 
-[![Sleep Data Tracker Demo](https://img.youtube.com/vi/YOUR_VIDEO_ID/0.jpg)](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
--->
-
-### 📸 **Screenshots**
-
-*Coming soon - Professional screenshots showcasing the app's interface*
-
-## �🚀 Installation & Setup
-
-### **📱 Quick Download (Recommended)**
-Download the latest APK directly:
-
-[![Download APK](https://img.shields.io/badge/Download-APK%20v1.0.0-blue?style=for-the-badge&logo=android)](https://github.com/mazdon9/Read-Sleep-Data/releases/download/v1.0.0/Sleep-Data-Tracker-v1.0.0.apk)
-
-**Requirements:**
-- Android 8.0 (API level 26) or higher
-- Health Connect app installed from Google Play Store
-- Allow installation from unknown sources (if needed)
-
-### **🛠 Build from Source**
 
 ### 1. **Clone the Repository**
 ```bash
