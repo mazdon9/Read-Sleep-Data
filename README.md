@@ -36,7 +36,7 @@ Sleep Data Tracker is a modern, intuitive mobile application designed to help us
 ### **📱 Quick Download (Recommended)**
 Download the latest APK directly:
 
-[![Download APK](https://img.shields.io/badge/Download-APK%20v1.0.0-blue?style=for-the-badge&logo=android)](https://github.com/mazdon9/Read-Sleep-Data/releases/download/v1.0.0/Sleep-Data-Tracker-v1.0.0.apk)
+[![Download APK](https://img.shields.io/badge/Download-APK%20v1.0.0-blue?style=for-the-badge&logo=android)](https://github.com/mazdon9/Read-Sleep-Data/raw/main/Sleep-Data-Tracker-v1.0.0.apk)
 
 **Requirements:**
 - Android 8.0 (API level 26) or higher
