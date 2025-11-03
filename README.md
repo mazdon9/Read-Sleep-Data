@@ -63,10 +63,10 @@ Sleep Data Tracker is a modern, intuitive mobile application designed to help us
 ### **Dependencies**
 ```yaml
 dependencies:
-  flutter_bloc: ^8.1.6      # State management
-  health: ^13.2.1           # Health Connect integration
-  url_launcher: ^6.3.1      # External app launches
-  cupertino_icons: ^1.0.8   # iOS-style icons
+flutter_bloc: ^8.1.6      # Cubit for state management
+health: ^13.2.1           # Health Connect integration  
+url_launcher: ^6.3.1      # External app launches
+cupertino_icons: ^1.0.8   # iOS-style icons
 ```
 
 ## � Screenshots & Demo
