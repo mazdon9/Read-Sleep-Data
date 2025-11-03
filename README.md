@@ -69,7 +69,43 @@ dependencies:
   cupertino_icons: ^1.0.8   # iOS-style icons
 ```
 
-## 🚀 Installation & Setup
+## � Screenshots & Demo
+
+### 🎥 **Video Demo**
+Watch the app in action:
+
+*Video demo will be available soon - showcasing the complete user flow from splash screen to sleep data visualization*
+
+**Demo Highlights:**
+- ✨ Professional splash screen with logo animation
+- 🔐 Health Connect integration and permission flow
+- 📊 Real-time sleep data visualization
+- 🔄 Auto-refresh and pull-to-refresh functionality
+- 🎨 Modern Material Design 3 interface
+- 📱 Responsive design across different screen sizes
+
+<!-- TODO: Add video demo link here -->
+<!-- 
+[![Sleep Data Tracker Demo](https://img.youtube.com/vi/YOUR_VIDEO_ID/0.jpg)](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
+-->
+
+### 📸 **Screenshots**
+
+*Coming soon - Professional screenshots showcasing the app's interface*
+
+## �🚀 Installation & Setup
+
+### **📱 Quick Download (Recommended)**
+Download the latest APK directly:
+
+[![Download APK](https://img.shields.io/badge/Download-APK%20v1.0.0-blue?style=for-the-badge&logo=android)](https://github.com/mazdon9/Read-Sleep-Data/releases/download/v1.0.0/Sleep-Data-Tracker-v1.0.0.apk)
+
+**Requirements:**
+- Android 8.0 (API level 26) or higher
+- Health Connect app installed from Google Play Store
+- Allow installation from unknown sources (if needed)
+
+### **🛠 Build from Source**
 
 ### 1. **Clone the Repository**
 ```bash
