@@ -5,13 +5,23 @@ A professional Flutter application that seamlessly integrates with **Health Conn
 ## 📱 Overview
 
 Sleep Data Tracker is a modern, intuitive mobile application designed to help users monitor and understand their sleep patterns. The app leverages Google's Health Connect platform to retrieve sleep data from various sources and presents it in a clean, user-friendly interface.
-## � Screenshots & Demo
-### 📸 **Screenshots**
-![z7186169103765_b0ffeb82966bd81aeda265b15bbf0b31](https://github.com/user-attachments/assets/90ada64b-d0f1-4b1c-b846-11b894fb2171)
-![z7186169112741_9f1493abb2edf39204c5aaacfdd4e2f6](https://github.com/user-attachments/assets/6f99cb5f-5410-4d77-b720-671a35181fe1)
-### 🎥 **Video Demo**
-Watch the app in action:
-![Uploading 1103(1).gif…]()
+## 📱 Screenshots & Demo
+
+### 📸 Screenshots
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/a6ab85ad-feba-418a-b0e3-1083994411a4" alt="screenshot_1" width="30%"/>
+  <img src="https://github.com/user-attachments/assets/106c0c78-f553-4622-8012-272711f5aed5" alt="screenshot_2" width="30%"/>
+</p>
+
+
+### 🎥 Flutter UI Demo
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/ea2e25df-ebc5-4436-9948-22c737a80012" 
+       alt="App Demo" 
+       width="250"/>
+  <br/>
+  <em>🎥 App Demo Preview</em>
+</p>
 
 **Demo Highlights:**
 - ✨ Professional splash screen with logo animation
